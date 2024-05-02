@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .message-container {
+            display: flex;
+            max-width: 70%;
+            margin-bottom: 10px;
+        }
+
+        .message {
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 80%;
+        }
+
+        .sent-message {
+            background-color: #007bff;
+            color: #fff;
+            align-self: flex-end;
+            border-bottom-right-radius: 0;
+        }
+
+        .received-message {
+            background-color: #f0f0f0;
+            color: #000;
+            align-self: flex-start;
+            border-bottom-left-radius: 0;
+        }
+
+        .message input[type="text"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            box-sizing: border-box;
+        }
+
+        .message button {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .message button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container" id="messages">
+        <!-- Messages will be displayed here -->
+    </div>
+    <div class="message" id="messageInput">
+        <input type="text" id="input" autocomplete="off" placeholder="Type your message...">
+        <button id="sendButton">Send</button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        const messages = document.getElementById('messages');
+        const input = document.getElementById('input');
+        const sendButton = document.getElementById('sendButton');
+
+        // Get username from local storage or prompt the user to enter it
+        let username = localStorage.getItem('username');
+        if (!username) {
+            username = prompt('Enter your name:');
+            localStorage.setItem('username', username);
+        }
+
+        sendButton.addEventListener('click', function(event) {
+            event.preventDefault();
+            sendMessage();
+        });
+
+        input.addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                sendMessage();
+            }
+        });
+
+        function sendMessage() {
+            const message = input.value;
+            if (message.trim() !== '') {
+                appendMessage(username + ': ' + message, 'sent');
+                socket.emit('chat message', message);
+                input.value = '';
+            }
+        }
+
+        socket.on('chat message', function(data) {
+            appendMessage(data, 'received');
+        });
+
+        function appendMessage(message, type) {
+            const messageContainer = document.createElement('div');
+            messageContainer.classList.add('message-container');
+
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.textContent = message;
+
+            if (type === 'sent') {
+                messageElement.classList.add('sent-message');
+            } else {
+                messageElement.classList.add('received-message');
+            }
+
+            messageContainer.appendChild(messageElement);
+            messages.appendChild(messageContainer);
+            messages.scrollTop = messages.scrollHeight;
+        }
+    </script>
+</body>
+</html>

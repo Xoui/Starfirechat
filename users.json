@@ -1,0 +1,17 @@
+{
+    "users": [
+      {
+        "username": "john_doe",
+        "password": "password123"
+      },
+      {
+        "username": "jane_smith",
+        "password": "letmein"
+      },
+      {
+        "username": "bob_jones",
+        "password": "securepassword"
+      }
+    ]
+  }
+  
