@@ -11,25 +11,20 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
-// Serve static files from the public directory
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 
-// Session middleware
 app.use(session({
     secret: 'secret',
     resave: false,
     saveUninitialized: false
 }));
 
-// Initialize Passport.js
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Read users from JSON file
 const usersData = JSON.parse(fs.readFileSync(path.join(__dirname, 'users.json')));
 
-// Configure Passport.js
 passport.use(new LocalStrategy(
     (username, password, done) => {
         const user = usersData.users.find(u => u.username === username && u.password === password);
@@ -50,29 +45,25 @@ passport.deserializeUser((username, done) => {
     done(null, user);
 });
 
-// Login route with Passport authentication
 app.post('/login', passport.authenticate('local', {
     successRedirect: '/chat',
     failureRedirect: '/login',
     failureFlash: true
 }));
 
-// Chat route
+
 app.get('/chat', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'chat.html'));
 });
 
-// Redirect root URL to login page
 app.get('/', (req, res) => {
     res.redirect('/login');
 });
 
-// Serve login.html when accessing /login
 app.get('/login', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
-// Socket.IO connection
 io.on('connection', (socket) => {
     console.log('A user connected');
 
